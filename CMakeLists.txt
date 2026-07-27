@@ -18,6 +18,7 @@ include(cmake/Sanitizers.cmake)
 
 add_subdirectory(core)
 add_subdirectory(apps/fake_drone_loop)
+add_subdirectory(apps/backyard_flyer)
 
 if(DRONE_LAB_BUILD_EXAMPLES)
   add_subdirectory(apps/target-tracking)
