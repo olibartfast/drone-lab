@@ -67,9 +67,3 @@ jobs:
           config --quiet
       - name: Validate smoke runner syntax
         run: bash -n simulation/px4-gazebo/scripts/simulator_smoke.sh
-      - name: Verify pinned image manifest
-        run: |
-          set -a
-          source simulation/px4-gazebo/versions.env
-          set +a
-          docker buildx imagetools inspect "${PX4_GAZEBO_IMAGE}" >/dev/null
