@@ -57,7 +57,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
   Vector3 target{};
   bool target_issued = false;
 
-  const auto transition = [&](FlightState next, AbortReason reason = AbortReason::none) mutable {
+  auto transition = [&](FlightState next, AbortReason reason = AbortReason::none) {
     record_transition(recorder_, state, next, reason, result.ticks);
     state = next;
     abort_reason = reason;
@@ -66,7 +66,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
     ++result.transitions;
   };
 
-  const auto issue = [&](const CommandResult& command) mutable {
+  auto issue = [&](const CommandResult& command) {
     if (accepted(command)) {
       ++result.commands_accepted;
       return true;
@@ -75,7 +75,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
     return false;
   };
 
-  const auto abort = [&](AbortReason reason) mutable {
+  auto abort = [&](AbortReason reason) {
     static_cast<void>(vehicle_.stop_motion());
     transition(FlightState::aborted, reason);
   };
@@ -113,9 +113,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
             break;
           }
         }
-        if (telemetry.armed) {
-          transition(FlightState::taking_off);
-        }
+        if (telemetry.armed) transition(FlightState::taking_off);
         break;
       case FlightState::taking_off:
         if (!target_issued) {
