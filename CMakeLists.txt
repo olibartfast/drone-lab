@@ -38,6 +38,9 @@ configure_package_config_file(
   "${CMAKE_CURRENT_BINARY_DIR}/DroneLabConfig.cmake"
   INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/DroneLab"
 )
+install(TARGETS drone_lab_warnings drone_lab_sanitizers
+  EXPORT DroneLabTargets
+)
 install(EXPORT DroneLabTargets
   FILE DroneLabTargets.cmake
   NAMESPACE DroneLab::
