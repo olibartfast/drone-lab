@@ -51,3 +51,19 @@ jobs:
         run: ctest --test-dir build -C ${{ matrix.config }} --output-on-failure
       - name: Install
         run: cmake --install build --config ${{ matrix.config }} --prefix build/install
+
+  simulator-contract:
+    name: px4-gazebo-contract
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate pinned environment
+        run: python3 simulation/px4-gazebo/scripts/validate_environment.py
+      - name: Validate compose model
+        run: >-
+          docker compose
+          --env-file simulation/px4-gazebo/versions.env
+          -f simulation/px4-gazebo/compose.yaml
+          config --quiet
+      - name: Validate smoke runner syntax
+        run: bash -n simulation/px4-gazebo/scripts/simulator_smoke.sh
