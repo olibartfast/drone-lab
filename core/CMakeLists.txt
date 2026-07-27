@@ -17,9 +17,10 @@ target_include_directories(drone_lab_core
 )
 target_compile_features(drone_lab_core PUBLIC cxx_std_20)
 target_compile_definitions(drone_lab_core PRIVATE DRONE_LAB_VERSION="${PROJECT_VERSION}")
-target_compile_options(drone_lab_core PRIVATE
-  $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wsign-conversion>
-  $<$<AND:$<BOOL:${DRONE_LAB_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:GNU,Clang>>:-Werror>
+target_link_libraries(drone_lab_core
+  PRIVATE
+    DroneLab::Warnings
+    DroneLab::Sanitizers
 )
 
 install(TARGETS drone_lab_core EXPORT DroneLabTargets

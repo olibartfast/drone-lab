@@ -13,6 +13,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+include(cmake/CompilerWarnings.cmake)
+include(cmake/Sanitizers.cmake)
+
 add_subdirectory(core)
 add_subdirectory(apps/fake_drone_loop)
 
@@ -34,6 +37,9 @@ configure_package_config_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DroneLabConfig.cmake.in"
   "${CMAKE_CURRENT_BINARY_DIR}/DroneLabConfig.cmake"
   INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/DroneLab"
+)
+install(TARGETS drone_lab_warnings drone_lab_sanitizers
+  EXPORT DroneLabTargets
 )
 install(EXPORT DroneLabTargets
   FILE DroneLabTargets.cmake
