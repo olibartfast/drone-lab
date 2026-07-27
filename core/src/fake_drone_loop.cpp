@@ -1,9 +1,9 @@
 #include "drone_lab/simulation/fake_drone_loop.hpp"
 
-#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <stdexcept>
+#include <string_view>
 
 namespace drone_lab {
 namespace {
@@ -52,7 +52,7 @@ FakeDroneMetrics FakeDroneLoop::run(std::ostream& jsonl_log) const {
     const double target_x = image_center + scenario_.target_amplitude_px *
         std::sin(2.0 * kPi * scenario_.target_frequency_hz * time_s);
     const double error_px = visible ? target_x - image_center - heading_effect_px : 0.0;
-    double proposal = visible ? scenario_.guidance_gain *
+    const double proposal = visible ? scenario_.guidance_gain *
         (error_px / image_center) : 0.0;
     const bool proposal_safe = std::isfinite(proposal) &&
         std::abs(proposal) <= scenario_.max_yaw_rate_rad_s;
