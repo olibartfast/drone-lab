@@ -14,6 +14,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(core)
+add_subdirectory(apps/fake_drone_loop)
 
 if(DRONE_LAB_BUILD_EXAMPLES)
   add_subdirectory(apps/target-tracking)
