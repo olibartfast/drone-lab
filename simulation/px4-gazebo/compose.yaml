@@ -1,0 +1,12 @@
+services:
+  px4-gazebo:
+    image: ${PX4_GAZEBO_IMAGE}
+    container_name: drone-lab-px4-gazebo
+    environment:
+      PX4_SIM_MODEL: ${SIMULATOR_MODEL}
+      PX4_GZ_WORLD: ${SIMULATOR_WORLD}
+      HEADLESS: "1"
+    ports:
+      - "${MAVLINK_UDP_PORT}:14550/udp"
+    init: true
+    stop_grace_period: 10s
