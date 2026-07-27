@@ -1,6 +1,7 @@
 add_library(drone_lab_core
   src/core.cpp
   src/fake_platform.cpp
+  src/fake_drone_loop.cpp
   src/session_logger.cpp
 )
 add_library(DroneLab::Core ALIAS drone_lab_core)
