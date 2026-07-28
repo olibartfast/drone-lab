@@ -14,13 +14,19 @@ Launch a pinned PX4 SITL and Gazebo Harmonic baseline without introducing PX4, G
 
 The authoritative values are in `versions.env`:
 
-- PX4 `v1.17.0`
-- `px4io/px4-sitl-gazebo:v1.17.0`
+- PX4 snapshot `v1.17.0-alpha1-1551-g381149fb01` (upstream commit `381149fb01`)
+- `px4io/px4-sitl-gazebo:v1.17.0-alpha1-1551-g381149fb01`
+- multi-platform image digest
+  `sha256:fe3608d282e214db19763d63e857b603781c6471fe0bc3276373927bb01f51db`
 - Gazebo Harmonic
 - `gz_x500` quadrotor
-- empty world
+- bundled `default` ground-plane world, containing only the ground plane and
+  sun
 
-Do not replace the image tag with `latest`.
+The stable PX4 `v1.17.0` release exists, but its matching
+`px4io/px4-sitl-gazebo:v1.17.0` image was not published. The closest published
+v1.17 snapshot is pinned by both its exact upstream-build tag and manifest-list
+digest. Do not replace it with `latest` or remove the digest.
 
 ## Validate the contract
 
@@ -46,7 +52,7 @@ docker compose --env-file versions.env down --remove-orphans
 ## Bounded smoke test
 
 ```bash
-bash simulation/px4-gazebo/scripts/simulator_smoke.sh
+simulation/px4-gazebo/scripts/simulator_smoke.sh
 ```
 
 The runner:
@@ -61,12 +67,12 @@ The runner:
 Successful report example:
 
 ```json
-{"duration_s":42,"image":"px4io/px4-sitl-gazebo:v1.17.0","px4_version":"v1.17.0","status":"ready"}
+{"duration_s":42,"image":"px4io/px4-sitl-gazebo:v1.17.0-alpha1-1551-g381149fb01@sha256:fe3608d282e214db19763d63e857b603781c6471fe0bc3276373927bb01f51db","px4_version":"v1.17.0-alpha1-1551-g381149fb01","status":"ready"}
 ```
 
 ## Acceptance criteria
 
-- the image uses an exact PX4 release tag;
+- the image uses an exact PX4 release or commit-snapshot tag and digest;
 - Compose resolves without local substitutions beyond `versions.env`;
 - the published container manifest exists;
 - the environment validator emits machine-readable output;
@@ -78,3 +84,15 @@ Successful report example:
 ## Known limitations
 
 The regular pull-request CI validates the pinned image manifest and launch contract but does not pull the approximately multi-gigabyte Gazebo image or run 3D simulation. The full smoke runner is intended for a Linux workstation or a dedicated simulator runner. M2.2 will add ROS 2 adapters only after this boundary is stable.
+
+## Relationship to Backyard Flyer
+
+This environment and `build/apps/backyard_flyer/backyard_flyer` are not connected
+yet. The current application deliberately composes `BackyardFlyerMission` with
+the deterministic `FakeFlightVehicle`; it does not open a MAVLink connection.
+
+There is therefore no supported command that runs Backyard Flyer against this
+Gazebo vehicle today. That integration requires the roadmap's M2.2 through M2.5
+adapter boundary, telemetry conversion, and neutral-command safety work before
+the M3 PX4 composition root can replace the fake backend. See
+`apps/backyard_flyer/README.md` for the currently runnable workflow.

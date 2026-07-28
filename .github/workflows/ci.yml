@@ -57,8 +57,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Test simulator helpers
+        run: python3 -m unittest discover -s simulation/px4-gazebo/tests -v
       - name: Validate pinned environment
         run: python3 simulation/px4-gazebo/scripts/validate_environment.py
+      - name: Verify pinned image manifest
+        run: |
+          set -a
+          source simulation/px4-gazebo/versions.env
+          docker manifest inspect "${PX4_GAZEBO_IMAGE}" >/dev/null
       - name: Validate compose model
         run: >-
           docker compose

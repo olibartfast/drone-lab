@@ -26,7 +26,7 @@ ready=0
 deadline=$((started_at + STARTUP_TIMEOUT_SECONDS))
 while (( $(date +%s) < deadline )); do
   docker compose --env-file "${SIM_DIR}/versions.env" -f "${SIM_DIR}/compose.yaml" logs --no-color >"${LOG_PATH}" 2>&1 || true
-  if grep -Eq 'Ready for takeoff|commander.*ready|INFO.*commander' "${LOG_PATH}"; then
+  if python3 "${SCRIPT_DIR}/check_readiness.py" "${LOG_PATH}" "${SIMULATOR_WORLD}" "x500_0"; then
     ready=1
     break
   fi

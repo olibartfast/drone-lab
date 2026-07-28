@@ -1,0 +1,7 @@
+/build/
+
+__pycache__/
+*.py[cod]
+
+/simulation/px4-gazebo/smoke.log
+/simulation/px4-gazebo/smoke-report.json
