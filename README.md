@@ -39,7 +39,7 @@ ctest --test-dir build --output-on-failure
 
 ## Current milestone
 
-The initial scaffold provides:
+The current implementation provides:
 
 - a C++20 core library;
 - vehicle, camera and telemetry abstractions;
@@ -48,5 +48,10 @@ The initial scaffold provides:
 - a minimal target-tracking application;
 - unit tests and GitHub Actions CI;
 - placeholders for Gazebo, PX4, ROS 2 and DJI MSDK adapters.
+
+`apps/backyard_flyer` currently uses an in-process deterministic fake vehicle.
+It does not connect to the separately launched PX4/Gazebo M2.1 environment.
+See [`apps/backyard_flyer/README.md`](apps/backyard_flyer/README.md) for the
+runnable workflow and the remaining adapter milestones.
 
 See [`docs/roadmap.md`](docs/roadmap.md) for the next atomic milestones.

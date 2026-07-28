@@ -23,6 +23,14 @@ REQUIRED_KEYS = {
     "SMOKE_RUNTIME_SECONDS",
 }
 
+PX4_VERSION_PATTERN = re.compile(
+    r"v\d+\.\d+\.\d+(?:-(?:alpha|beta|rc)\d+(?:-\d+-g[0-9a-f]{7,40})?)?"
+)
+IMAGE_PATTERN = re.compile(
+    rf"px4io/px4-sitl-gazebo:(?P<tag>{PX4_VERSION_PATTERN.pattern})"
+    r"@sha256:(?P<digest>[0-9a-f]{64})"
+)
+
 
 def read_env(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
@@ -41,6 +49,24 @@ def read_env(path: Path) -> dict[str, str]:
     return values
 
 
+def validate_image_reference(image: str, version: str) -> list[str]:
+    errors: list[str] = []
+    if ":latest" in image:
+        errors.append("PX4_GAZEBO_IMAGE must not use latest")
+
+    if not PX4_VERSION_PATTERN.fullmatch(version):
+        errors.append("PX4_VERSION must be an exact release or commit snapshot tag")
+
+    match = IMAGE_PATTERN.fullmatch(image)
+    if match is None:
+        errors.append(
+            "PX4_GAZEBO_IMAGE must use px4io/px4-sitl-gazebo:<exact-tag>@sha256:<digest>"
+        )
+    elif match.group("tag") != version:
+        errors.append("PX4_GAZEBO_IMAGE tag must match PX4_VERSION")
+    return errors
+
+
 def main() -> int:
     errors: list[str] = []
     try:
@@ -55,18 +81,13 @@ def main() -> int:
 
     image = values.get("PX4_GAZEBO_IMAGE", "")
     version = values.get("PX4_VERSION", "")
-    if image.endswith(":latest") or ":latest@" in image:
-        errors.append("PX4_GAZEBO_IMAGE must not use latest")
-    if not re.fullmatch(r"v\d+\.\d+\.\d+", version):
-        errors.append("PX4_VERSION must be an exact stable tag such as v1.17.0")
-    if image and version and not image.endswith(f":{version}"):
-        errors.append("PX4_GAZEBO_IMAGE tag must match PX4_VERSION")
+    errors.extend(validate_image_reference(image, version))
     if values.get("GAZEBO_DISTRIBUTION") != "harmonic":
         errors.append("GAZEBO_DISTRIBUTION must be harmonic for the pinned environment")
     if values.get("SIMULATOR_MODEL") != "gz_x500":
         errors.append("SIMULATOR_MODEL must be gz_x500 for the baseline scenario")
-    if values.get("SIMULATOR_WORLD") != "empty":
-        errors.append("SIMULATOR_WORLD must be empty for M2.1")
+    if values.get("SIMULATOR_WORLD") != "default":
+        errors.append("SIMULATOR_WORLD must be the default ground-plane world for M2.1")
 
     for key in ("MAVLINK_UDP_PORT", "STARTUP_TIMEOUT_SECONDS", "SMOKE_RUNTIME_SECONDS"):
         try:
