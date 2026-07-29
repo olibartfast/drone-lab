@@ -1,0 +1,4 @@
+services:
+  px4-gazebo:
+    environment:
+      HEADLESS: "1"

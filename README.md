@@ -46,12 +46,13 @@ The current implementation provides:
 - explicit platform capability modelling;
 - fake platform implementations;
 - a minimal target-tracking application;
+- an opt-in MAVSDK adapter and PX4/Gazebo Backyard Flyer scenario;
 - unit tests and GitHub Actions CI;
-- placeholders for Gazebo, PX4, ROS 2 and DJI MSDK adapters.
+- placeholders for ROS 2 and DJI MSDK adapters.
 
-`apps/backyard_flyer` currently uses an in-process deterministic fake vehicle.
-It does not connect to the separately launched PX4/Gazebo M2.1 environment.
+`apps/backyard_flyer` uses an in-process deterministic fake vehicle by default
+and can use the opt-in PX4 SITL adapter through the pinned Gazebo scenario.
 See [`apps/backyard_flyer/README.md`](apps/backyard_flyer/README.md) for the
-runnable workflow and the remaining adapter milestones.
+runnable workflows and current limitations.
 
 See [`docs/roadmap.md`](docs/roadmap.md) for the next atomic milestones.
