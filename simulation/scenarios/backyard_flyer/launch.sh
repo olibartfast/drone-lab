@@ -15,6 +15,7 @@ RESOURCE_REPORT="${OUTPUT_DIR}/resources-summary.json"
 REPORT="${OUTPUT_DIR}/result.json"
 COMPOSE=(docker compose --env-file "${SIM_DIR}/versions.env" -f "${SCRIPT_DIR}/compose.yaml")
 GUI_RENDERER="none"
+DRI_PRIME_SELECTOR="${DRONE_LAB_DRI_PRIME:-}"
 
 usage() {
   echo "usage: ${0} --gui|--headless" >&2
@@ -33,8 +34,26 @@ fi
 if [[ "${GUI}" == true ]]; then
   GUI_RENDERER="software"
   if [[ -d /dev/dri ]]; then
-    COMPOSE+=(-f "${SCRIPT_DIR}/compose.gui.yaml")
-    GUI_RENDERER="hardware-dri"
+    if [[ -z "${DRI_PRIME_SELECTOR}" ]]; then
+      for device_path in /sys/class/drm/renderD*/device; do
+        [[ -e "${device_path}/driver" ]] || continue
+        driver_name="$(basename "$(readlink -f "${device_path}/driver")")"
+        if [[ "${driver_name}" == "i915" || "${driver_name}" == "amdgpu" ||
+              "${driver_name}" == "nouveau" ]]; then
+          pci_address="$(basename "$(readlink -f "${device_path}")")"
+          pci_selector="${pci_address//:/_}"
+          pci_selector="${pci_selector//./_}"
+          DRI_PRIME_SELECTOR="pci-${pci_selector}"
+          GUI_RENDERER="hardware-dri-${driver_name}"
+          break
+        fi
+      done
+    else
+      GUI_RENDERER="hardware-dri-override"
+    fi
+    if [[ -n "${DRI_PRIME_SELECTOR}" ]]; then
+      COMPOSE+=(-f "${SCRIPT_DIR}/compose.gui.yaml")
+    fi
   fi
 fi
 
@@ -47,6 +66,7 @@ BUILD_PARALLEL_JOBS="${DRONE_LAB_BUILD_JOBS:-${BUILD_PARALLEL_JOBS}}"
 SIMULATOR_CPUS="${DRONE_LAB_SIMULATOR_CPUS:-${SIMULATOR_CPUS}}"
 SIMULATOR_MEMORY_LIMIT="${DRONE_LAB_SIMULATOR_MEMORY_LIMIT:-${SIMULATOR_MEMORY_LIMIT}}"
 export BUILD_PARALLEL_JOBS SIMULATOR_CPUS SIMULATOR_MEMORY_LIMIT
+export DRI_PRIME_SELECTOR
 
 x_access=false
 resource_monitor_pid=""

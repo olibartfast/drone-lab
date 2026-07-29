@@ -2,6 +2,6 @@ services:
   px4-gazebo:
     environment:
       LIBGL_ALWAYS_SOFTWARE: "0"
-      DRI_PRIME: "${DRI_PRIME:-0}"
+      DRI_PRIME: "${DRI_PRIME_SELECTOR:-}"
     devices:
       - /dev/dri:/dev/dri

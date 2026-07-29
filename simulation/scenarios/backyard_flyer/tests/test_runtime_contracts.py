@@ -44,8 +44,17 @@ class ComposeContractTest(unittest.TestCase):
     def test_accepts_hardware_gui_contract(self):
         config = self.valid_config()
         config["services"]["px4-gazebo"]["environment"]["LIBGL_ALWAYS_SOFTWARE"] = "0"
+        config["services"]["px4-gazebo"]["environment"]["DRI_PRIME"] = "pci-0000_00_02_0"
         config["services"]["px4-gazebo"]["devices"] = [{"path_in_container": "/dev/dri"}]
         self.assertEqual(compose_contract.validate(config, expect_hardware=True), [])
+
+    def test_rejects_invalid_zero_dri_selector(self):
+        config = self.valid_config()
+        config["services"]["px4-gazebo"]["environment"]["LIBGL_ALWAYS_SOFTWARE"] = "0"
+        config["services"]["px4-gazebo"]["environment"]["DRI_PRIME"] = "0"
+        config["services"]["px4-gazebo"]["devices"] = [{"path_in_container": "/dev/dri"}]
+        errors = compose_contract.validate(config, expect_hardware=True)
+        self.assertIn("DRI_PRIME=0 is invalid; use a PCI selector or leave it unset", errors)
 
     def test_rejects_unbounded_non_gui_contract(self):
         config = self.valid_config()
@@ -69,6 +78,12 @@ class LauncherContractTest(unittest.TestCase):
         self.assertIn("gz sim -g --verbose=4", script)
         self.assertIn("gazebo_gui_startup", script)
         self.assertIn("gazebo_gui_runtime", script)
+
+    def test_launcher_selects_a_mesa_compatible_render_device(self):
+        script = (SCENARIO_DIR / "launch.sh").read_text(encoding="utf-8")
+        self.assertIn('driver_name}" == "i915"', script)
+        self.assertIn('driver_name}" == "amdgpu"', script)
+        self.assertIn('DRI_PRIME_SELECTOR="pci-${pci_selector}"', script)
 
 
 class ResourceSummaryTest(unittest.TestCase):
