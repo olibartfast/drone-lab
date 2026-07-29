@@ -684,3 +684,26 @@ Milestone 3 is complete only when:
 ## Project acceptance test
 
 The simulated drone connects, arms, takes off, flies four bounded square legs, lands, and reaches `Complete`. Any timeout, invalid telemetry, command failure, or connection loss transitions to `Aborted`, emits no stale command, and records a typed failure reason.
+
+## Implementation and verification map
+
+The maintained implementation maps this plan to:
+
+- `FlightStateMachine`, typed events, transition results, entry-action
+  proposals, versioned configuration, and metrics in
+  `core/include/drone_lab/mission/backyard_flyer.hpp`;
+- deterministic nominal and failure execution in `core/src/backyard_flyer.cpp`;
+- targeted fault injection and all four progressive fake scenarios in
+  `core/tests/backyard_flyer_tests.cpp`;
+- `--scenario arm-only|takeoff-only|single-leg|square` in the application;
+- the pinned configuration and frame contract in
+  `simulation/scenarios/backyard_flyer/scenario.yaml`;
+- one bounded launch command per scenario and the four-stage headless suite in
+  `simulation/scenarios/backyard_flyer/launch.sh` and `run_all.sh`;
+- scenario-specific machine-readable acceptance in `check_result.py`;
+- cross-platform build/test/install jobs and the PX4/Gazebo contract job in CI.
+
+Ordinary CI intentionally does not pull the multi-gigabyte simulator image.
+M3 closure therefore requires recorded headless PX4/Gazebo evidence for all
+four modes in addition to green required CI. Visible GUI behavior remains a
+manual operator check and is not substituted by agent-side execution.

@@ -1,0 +1,35 @@
+version: 1
+milestone: 3
+simulator:
+  distribution: harmonic
+  autopilot: px4
+  vehicle_model: gz_x500
+  world: empty
+mission:
+  default_scenario: square
+  scenarios:
+    - arm_only
+    - takeoff_only
+    - single_leg
+    - square
+  takeoff_altitude_m: 2.0
+  square_side_m: 4.0
+  horizontal_speed_mps: 1.0
+  vertical_speed_mps: 0.8
+  position_tolerance_m: 0.5
+  altitude_tolerance_m: 0.35
+frames:
+  world: ENU
+  x_positive: east
+  y_positive: north
+  z_positive: up
+  yaw_positive: counterclockwise_about_positive_z
+  yaw_units: radians
+  targets: absolute_world_positions_derived_from_captured_origin
+  square_order: ["+X", "+Y", "-X", "-Y"]
+limits:
+  simulator_cpu_ceiling: 6.0
+  simulator_memory_limit: 8g
+  startup_timeout_s: 120
+  mission_timeout_s: 180
+  shutdown_timeout_s: 10

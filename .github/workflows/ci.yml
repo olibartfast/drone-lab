@@ -101,6 +101,7 @@ jobs:
           bash -n simulation/px4-gazebo/scripts/simulator_smoke.sh
           bash -n simulation/scenarios/backyard_flyer/bootstrap_mavsdk.sh
           bash -n simulation/scenarios/backyard_flyer/launch.sh
+          bash -n simulation/scenarios/backyard_flyer/run_all.sh
           python3 -m py_compile \
             simulation/scenarios/backyard_flyer/check_compose_contract.py \
             simulation/scenarios/backyard_flyer/check_result.py \

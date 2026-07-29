@@ -21,4 +21,9 @@ target_link_libraries(backyard_flyer_tests PRIVATE
   DroneLab::Sanitizers
 )
 add_test(NAME backyard_flyer_tests COMMAND backyard_flyer_tests)
-add_test(NAME backyard_flyer_cli COMMAND backyard_flyer)
+foreach(scenario IN ITEMS arm-only takeoff-only single-leg square)
+  add_test(
+    NAME backyard_flyer_cli_${scenario}
+    COMMAND backyard_flyer --backend fake --scenario ${scenario}
+  )
+endforeach()

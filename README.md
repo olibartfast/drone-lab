@@ -42,17 +42,24 @@ ctest --test-dir build --output-on-failure
 On an Ubuntu x86_64 X11 or XWayland desktop with Docker Compose:
 
 ```bash
-simulation/scenarios/backyard_flyer/launch.sh --gui
+simulation/scenarios/backyard_flyer/launch.sh --gui --scenario square
 ```
 
 The launcher builds the PX4-enabled app, starts pinned PX4 SITL and Gazebo,
 opens and monitors the GUI, flies the 4 m square, lands, and cleans up. Do not
-use `sudo`. Defaults are capped at 4 CPU cores, 8 GiB RAM, and 4 build jobs.
+use `sudo`. Defaults are capped at 6 CPU cores, 8 GiB RAM, and 4 build jobs.
 Compatible Intel or AMD DRI rendering is selected automatically when
 available; proprietary NVIDIA-only systems use the software fallback.
 
 Mission, GUI, simulator, and peak resource reports are written under
-`build/backyard-flyer-sitl/results/`. See the
+`build/backyard-flyer-sitl/results/square/`. Run the complete progressive
+headless acceptance suite with:
+
+```bash
+simulation/scenarios/backyard_flyer/run_all.sh --headless
+```
+
+See the
 [scenario guide](simulation/scenarios/backyard_flyer/README.md) for headless
 execution, overrides, expected output, and troubleshooting.
 
@@ -65,7 +72,10 @@ The current implementation provides:
 - explicit platform capability modelling;
 - fake platform implementations;
 - a minimal target-tracking application;
-- an opt-in MAVSDK adapter and PX4/Gazebo Backyard Flyer scenario;
+- an explicit typed Backyard Flyer mission state machine;
+- deterministic arm-only, takeoff-only, single-leg, and square scenarios;
+- failure injection, bounded per-state timeouts, and structured mission metrics;
+- an opt-in MAVSDK adapter and pinned PX4/Gazebo acceptance scenario;
 - unit tests and GitHub Actions CI;
 - placeholders for ROS 2 and DJI MSDK adapters.
 

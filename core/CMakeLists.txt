@@ -4,6 +4,7 @@ add_library(drone_lab_core
   src/fake_drone_loop.cpp
   src/session_logger.cpp
   src/backyard_flyer.cpp
+  src/backyard_flyer_state_machine.cpp
   src/fake_flight_vehicle.cpp
 )
 add_library(DroneLab::Core ALIAS drone_lab_core)
