@@ -1,3 +1,7 @@
 add_executable(backyard_flyer main.cpp)
 target_link_libraries(backyard_flyer PRIVATE DroneLab::Core DroneLab::Warnings DroneLab::Sanitizers)
+if(DRONE_LAB_ENABLE_PX4_SIM)
+  target_link_libraries(backyard_flyer PRIVATE DroneLab::Px4Sim)
+  target_compile_definitions(backyard_flyer PRIVATE DRONE_LAB_HAS_PX4_SIM=1)
+endif()
 install(TARGETS backyard_flyer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

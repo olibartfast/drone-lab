@@ -1,13 +1,10 @@
 # Backyard Flyer
 
-## Current objective
+## Objective
 
-Exercise the platform-independent Backyard Flyer mission deterministically with
-the fake flight vehicle: connect, arm, take off, fly a four-leg square, land,
-disarm, and emit machine-readable transition and summary records.
-
-The executable currently validates mission orchestration only. It does **not**
-connect to PX4 or Gazebo.
+Connect, arm, take off, fly a bounded square, land, disarm, and emit
+machine-readable mission records. The executable supports a deterministic fake
+backend by default and an opt-in PX4 SITL backend used by the Gazebo scenario.
 
 ## Architecture
 
@@ -16,14 +13,15 @@ backyard_flyer executable
         |
         +-- BackyardFlyerMission (platform-independent core)
         |
-        +-- FakeFlightVehicle (deterministic in-process backend)
+        +-- FakeFlightVehicle (default deterministic backend)
+        |
+        +-- Px4FlightVehicle (optional MAVSDK/PX4 SITL adapter)
         |
         +-- StreamRecorder (JSONL to standard output)
 ```
 
-The planned simulator composition root will replace `FakeFlightVehicle` with a
-PX4 adapter only after M2.2 through M2.5 establish telemetry conversion,
-capability checks, command safety, and lifecycle behavior.
+The PX4 and MAVSDK dependency remains isolated in `adapters/px4`; it is never
+attached to `DroneLab::Core` or enabled by a default build.
 
 ## Build and run
 
@@ -35,43 +33,32 @@ cmake --build build
 build/apps/backyard_flyer/backyard_flyer
 ```
 
-No simulator process is required for this command.
+No simulator process is required for the default command.
 
-## Gazebo status
+## Gazebo run
 
-The pinned M2.1 simulator can be validated independently:
+On an Ubuntu 24.04 x86_64 desktop with Docker Compose and X11:
 
 ```bash
-simulation/px4-gazebo/scripts/simulator_smoke.sh
+simulation/scenarios/backyard_flyer/launch.sh --gui
 ```
 
-Launching it does not change the Backyard Flyer backend. Running both commands
-at the same time starts two independent processes; no mission commands or
-telemetry pass between them.
-
-A supported Gazebo flight requires these roadmap prerequisites:
-
-1. M2.2 adapter boundary;
-2. M2.3 PX4 telemetry adapter;
-3. M2.4 Gazebo camera adapter where the scenario needs imagery;
-4. M2.5 neutral offboard-command entry and safe exit;
-5. an M3 composition root and SITL acceptance runner.
-
-Skipping those gates would create an aircraft-command path without the required
-freshness, capability, timeout, and neutralization behavior.
+See the [scenario README](../../simulation/scenarios/backyard_flyer/README.md)
+for prerequisites, headless execution, output files, failure behavior, and
+manual GUI validation.
 
 ## Scenario and coordinate frame
 
-The fake vehicle uses world ENU coordinates. It captures the starting position
-as the origin, climbs to 2 m, and derives all four 4 m square corners from that
-origin:
+The mission uses world ENU coordinates. Positive x is east, positive y is
+north, and positive z is up. It captures the starting local position as the
+origin, climbs to 2 m, and derives four relative 4 m square corners:
 
 ```text
 (0, 0) -> (4, 0) -> (4, 4) -> (0, 4) -> (0, 0)
 ```
 
-Positive `z` is up. The default update rate is 20 Hz, horizontal speed is
-1 m/s, and each non-terminal state has a 15 s timeout.
+Yaw is not commanded by this milestone. MAVSDK global goto targets are derived
+at the adapter boundary from the PX4 local ENU targets.
 
 ## Expected output
 
@@ -88,14 +75,16 @@ transitions to `Aborted`. The terminal summary reports the final state, typed
 abort reason, ticks, transition count, final return-to-origin error, and whether
 a stale movement command remains active.
 
-The fake-backend acceptance test requires `Complete`, no abort, nine
-transitions, endpoint error no greater than 0.15 m, and no stale command.
+The fake-backend acceptance test requires `complete`, no abort, nine
+transitions, endpoint error no greater than 0.15 m, and no stale command. The
+SITL acceptance checker requires the PX4 backend, `complete`, no abort, and no
+stale command.
 
 ## Known limitations
 
-- No MAVLink, MAVSDK, ROS 2, PX4, or Gazebo adapter is linked.
-- This executable does not prove the M3 SITL square or landing criteria.
 - Per-leg, cross-track, altitude, and timing metrics required by the full M3
-  plan are not yet emitted.
-- Simulator cleanup and PX4 failure behavior must be validated by the future
-  SITL runner, not this fake-backend executable.
+  plan are not yet emitted, so this is the first M3 simulator vertical slice,
+  not closure of the entire milestone.
+- The PX4 adapter is Linux x86_64 only and uses MAVSDK 3.17.1.
+- The GUI must be validated manually from the operator's desktop session.
+- No ROS 2, camera, visual guidance, or real-aircraft path is included.

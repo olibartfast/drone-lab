@@ -1,0 +1,14 @@
+services:
+  px4-gazebo:
+    image: ${PX4_GAZEBO_IMAGE}
+    container_name: drone-lab-backyard-flyer
+    network_mode: host
+    environment:
+      PX4_SIM_MODEL: ${SIMULATOR_MODEL}
+      PX4_GZ_WORLD: ${SIMULATOR_WORLD}
+      DISPLAY: ${DISPLAY:-}
+      QT_X11_NO_MITSHM: "1"
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    init: true
+    stop_grace_period: 10s

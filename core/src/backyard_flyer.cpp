@@ -29,6 +29,19 @@ void record_transition(Recorder& recorder, FlightState from, FlightState to, Abo
   recorder.record(out.str());
 }
 
+void record_telemetry(Recorder& recorder, const VehicleState& state, FlightState flight_state,
+                      std::uint64_t tick) {
+  std::ostringstream out;
+  out << "{\"event\":\"telemetry\",\"tick\":" << tick << ",\"state\":\""
+      << to_string(flight_state) << "\",\"frame\":\"world_enu\",\"position_m\":{\"x\":"
+      << state.pose.position_m.x << ",\"y\":" << state.pose.position_m.y
+      << ",\"z\":" << state.pose.position_m.z << "},\"velocity_mps\":{\"x\":"
+      << state.velocity.linear_mps.x << ",\"y\":" << state.velocity.linear_mps.y
+      << ",\"z\":" << state.velocity.linear_mps.z << "},\"navigation_mode\":"
+      << static_cast<int>(state.navigation_mode) << "}";
+  recorder.record(out.str());
+}
+
 [[nodiscard]] bool accepted(const CommandResult& result) {
   return result.status == CommandStatus::accepted;
 }
@@ -41,7 +54,7 @@ BackyardFlyerMission::BackyardFlyerMission(FlightVehicle& vehicle, Recorder& rec
   if (!(config_.update_rate_hz > 0.0) || !(config_.takeoff_altitude_m > 0.0) ||
       !(config_.leg_length_m > 0.0) || !(config_.horizontal_speed_mps > 0.0) ||
       !(config_.vertical_speed_mps > 0.0) || !(config_.state_timeout_s > 0.0) ||
-      !(config_.mission_timeout_s > 0.0)) {
+      !(config_.mission_timeout_s > 0.0) || !(config_.confirmation_time_s > 0.0)) {
     throw std::invalid_argument("BackyardFlyerConfig values must be positive");
   }
 }
@@ -56,6 +69,9 @@ BackyardFlyerResult BackyardFlyerMission::run() {
   Vector3 origin{};
   Vector3 target{};
   bool target_issued = false;
+  std::uint64_t confirmation_ticks = 0;
+  const auto required_confirmation_ticks =
+      static_cast<std::uint64_t>(std::ceil(config_.confirmation_time_s * config_.update_rate_hz));
 
   auto transition = [&](FlightState next, AbortReason reason = AbortReason::none) {
     record_transition(recorder_, state, next, reason, result.ticks);
@@ -63,6 +79,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
     abort_reason = reason;
     state_elapsed_s = 0.0;
     target_issued = false;
+    confirmation_ticks = 0;
     ++result.transitions;
   };
 
@@ -82,6 +99,7 @@ BackyardFlyerResult BackyardFlyerMission::run() {
 
   while (state != FlightState::complete && state != FlightState::aborted) {
     const VehicleState telemetry = vehicle_.latest_state();
+    if (result.ticks % 10 == 0) record_telemetry(recorder_, telemetry, state, result.ticks);
     if (!finite(telemetry)) {
       abort(AbortReason::invalid_telemetry);
       break;
@@ -124,8 +142,15 @@ BackyardFlyerResult BackyardFlyerMission::run() {
           }
         }
         if (telemetry.airborne &&
+            telemetry.navigation_mode == NavigationMode::hold &&
             std::abs(telemetry.pose.position_m.z - config_.takeoff_altitude_m) <=
-                config_.altitude_tolerance_m) {
+                config_.altitude_tolerance_m &&
+            std::abs(telemetry.velocity.linear_mps.z) <= config_.vertical_speed_mps * 0.25) {
+          ++confirmation_ticks;
+        } else {
+          confirmation_ticks = 0;
+        }
+        if (confirmation_ticks >= required_confirmation_ticks) {
           transition(FlightState::flying_leg_1);
         }
         break;
@@ -192,9 +217,9 @@ BackyardFlyerResult BackyardFlyerMission::run() {
   result.final_state = state;
   result.abort_reason = abort_reason;
   const VehicleState final_state = vehicle_.latest_state();
-  result.stale_command_active = final_state.velocity.linear_mps.x != 0.0 ||
-                                final_state.velocity.linear_mps.y != 0.0 ||
-                                final_state.velocity.linear_mps.z != 0.0;
+  const auto& velocity = final_state.velocity.linear_mps;
+  result.stale_command_active =
+      std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z) > 0.1;
   return result;
 }
 

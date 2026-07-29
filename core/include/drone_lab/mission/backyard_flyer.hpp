@@ -37,6 +37,7 @@ struct BackyardFlyerConfig {
   double vertical_speed_mps{0.8};
   double position_tolerance_m{0.15};
   double altitude_tolerance_m{0.10};
+  double confirmation_time_s{1.0};
   double state_timeout_s{15.0};
   double mission_timeout_s{90.0};
 };
