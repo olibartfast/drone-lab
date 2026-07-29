@@ -1,0 +1,17 @@
+version=1
+map_kind=grid2d
+scenario=non_finite
+width=1
+height=1
+resolution_m=nan
+origin_m=0.0,0.0
+revision=1
+unknown_policy=blocked
+vehicle_radius_m=0.0
+clearance_m=0.0
+start=0,0
+goal=0,0
+expected_status=success
+expected_reason=none
+data:
+.

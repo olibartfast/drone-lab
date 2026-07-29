@@ -1,0 +1,28 @@
+schema_version: 1
+scenario: planner_lab
+world: planner_lab
+gazebo_distribution: harmonic
+display_duration_sim_s: 8
+camera:
+  pose_enu_m_rpy: [2.0, 0.25, 14.0, 0.0, 1.5707963267948966, 1.5707963267948966]
+  width_px: 1280
+  height_px: 720
+  horizontal_fov_rad: 1.0471975511965976
+capture:
+  frame_rate_hz: 30
+  simulation_time: true
+  lockstep: true
+  renderer: ogre2_egl
+  software_fallback: llvmpipe
+  encoder: gazebo_common
+  container: mp4
+  bitrate_bps: 4000000
+markers:
+  source_height_m: 0.08
+  inflated_height_m: 0.04
+  source_colour_rgba: [0.20, 0.20, 0.20, 1.0]
+  inflated_colour_rgba: [0.85, 0.25, 0.15, 0.75]
+  start_colour_rgba: [0.10, 0.85, 0.20, 1.0]
+  goal_colour_rgba: [0.15, 0.30, 0.95, 1.0]
+  raw_path_colour_rgba: [0.95, 0.75, 0.10, 1.0]
+  pruned_path_colour_rgba: [0.05, 0.90, 0.90, 1.0]

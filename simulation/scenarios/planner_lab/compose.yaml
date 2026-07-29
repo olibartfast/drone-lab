@@ -1,0 +1,22 @@
+services:
+  planner-gazebo:
+    image: ${PX4_GAZEBO_IMAGE}
+    network_mode: host
+    environment:
+      DISPLAY: ${DISPLAY:-}
+      QT_X11_NO_MITSHM: "1"
+      XDG_RUNTIME_DIR: /tmp/drone-lab-planner-xdg
+      LIBGL_ALWAYS_SOFTWARE: ${PLANNER_LAB_SOFTWARE_RENDERING:-1}
+      GZ_SIM_RESOURCE_PATH: /artifacts
+    volumes:
+      - ${PLANNER_LAB_OUTPUT_DIR}:/artifacts:rw
+      - ./:/scenario:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    cpus: 4.0
+    mem_limit: 8g
+    shm_size: 1g
+    init: true
+    stop_grace_period: 10s
+    working_dir: /artifacts
+    entrypoint: ["/bin/bash"]
+    command: ["/scenario/runtime.sh", "${PLANNER_LAB_MODE:-headless}"]
