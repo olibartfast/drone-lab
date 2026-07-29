@@ -115,15 +115,39 @@ class PlannerScenarioContracts(unittest.TestCase):
                 "raw_segments": 2, "pruned_segments": 1, "status": 1, "total": 8,
             }
         }
-        runtime = {
-            "status": "failed",
-            "failure_reason": "gui_exited_early",
-            "cleanup_status": "bounded",
-        }
-        self.assertEqual(
-            ["gui_exited_early"],
-            validate_result(report, markers, runtime, None, False),
+        required_failures = (
+            "gazebo_start_timeout",
+            "gui_start_timeout",
+            "gui_exited_early",
+            "marker_publish_failed",
+            "marker_contract_mismatch",
+            "shutdown_timeout",
+            "offscreen_renderer_unavailable",
+            "encoder_start_failed",
+            "encoder_exited_early",
+            "video_missing",
+            "video_metadata_mismatch",
+            "video_decode_failed",
+            "artifact_write_failed",
         )
+        for failure_reason in required_failures:
+            with self.subTest(failure_reason=failure_reason):
+                runtime = {
+                    "status": "failed",
+                    "failure_reason": failure_reason,
+                    "cleanup_status": "bounded",
+                }
+                self.assertEqual(
+                    [failure_reason],
+                    validate_result(report, markers, runtime, None, False),
+                )
+
+    def test_runtime_has_bounded_shutdown_and_early_exit_detection(self) -> None:
+        runtime_script = (SCENARIO_DIR / "runtime.sh").read_text(encoding="utf-8")
+        self.assertIn("gui_exited_early", runtime_script)
+        self.assertIn("gazebo_start_timeout", runtime_script)
+        self.assertIn('kill -TERM "${gazebo_pid}"', runtime_script)
+        self.assertIn('kill -KILL "${gazebo_pid}"', runtime_script)
 
 
 if __name__ == "__main__":

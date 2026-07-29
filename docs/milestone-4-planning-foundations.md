@@ -1016,34 +1016,34 @@ approval.
 
 Milestone 4 is complete only when all statements below are verified:
 
-- [ ] `DroneLab::Planning` is platform-independent, installable, and exported.
-- [ ] Coordinate frames, index conventions, units, and half-open bounds are
+- [x] `DroneLab::Planning` is platform-independent, installable, and exported.
+- [x] Coordinate frames, index conventions, units, and half-open bounds are
       documented and tested.
-- [ ] Occupied, free, and unknown states have explicit behavior.
-- [ ] 2D inflation is conservative and deterministic.
-- [ ] Grid A* handles reachable, unreachable, and start-equals-goal fixtures.
-- [ ] Grid A* tie-breaking and neighbor order are explicit and deterministic.
-- [ ] The pinned Gazebo GUI displays markers matching the planner JSON.
-- [ ] Gazebo-specific types remain outside `DroneLab::Planning`.
-- [ ] GUI startup, early exit, and shutdown failures are tested.
-- [ ] The headless command produces a validated playable video.
-- [ ] Capture configuration and renderer selection are pinned and reported.
-- [ ] Video never replaces or weakens planner acceptance assertions.
-- [ ] The scenario README documents GUI, RunPod recording, and cleanup.
-- [ ] Diagonal corner cutting is rejected.
-- [ ] Pruned paths preserve endpoints and pass collision revalidation.
-- [ ] Grid and graph planners use one interface and have fixture parity.
-- [ ] 3D voxel collision occupancy considers vehicle size in all axes.
-- [ ] Path validation covers bounds, collision, clearance, climb rate, spacing,
+- [x] Occupied, free, and unknown states have explicit behavior.
+- [x] 2D inflation is conservative and deterministic.
+- [x] Grid A* handles reachable, unreachable, and start-equals-goal fixtures.
+- [x] Grid A* tie-breaking and neighbor order are explicit and deterministic.
+- [x] The pinned Gazebo GUI displays markers matching the planner JSON.
+- [x] Gazebo-specific types remain outside `DroneLab::Planning`.
+- [x] GUI startup, early exit, and shutdown failures are tested.
+- [x] The headless command produces a validated playable video.
+- [x] Capture configuration and renderer selection are pinned and reported.
+- [x] Video never replaces or weakens planner acceptance assertions.
+- [x] The scenario README documents GUI, RunPod recording, and cleanup.
+- [x] Diagonal corner cutting is rejected.
+- [x] Pruned paths preserve endpoints and pass collision revalidation.
+- [x] Grid and graph planners use one interface and have fixture parity.
+- [x] 3D voxel collision occupancy considers vehicle size in all axes.
+- [x] Path validation covers bounds, collision, clearance, climb rate, spacing,
       and total length.
-- [ ] Invalid plans contain stable machine-readable rejection reasons and
+- [x] Invalid plans contain stable machine-readable rejection reasons and
       offending indices.
-- [ ] `planner_lab` produces deterministic schema-versioned reports.
-- [ ] CLI failures and output-write failures are explicit and tested.
-- [ ] The app README states assumptions, coordinate frames, failure behavior,
+- [x] `planner_lab` produces deterministic schema-versioned reports.
+- [x] CLI failures and output-write failures are explicit and tested.
+- [x] The app README states assumptions, coordinate frames, failure behavior,
       and limitations.
-- [ ] Configure, build, unit/integration/CLI tests, and install pass locally.
-- [ ] Every required GitHub Actions job for the final head commit is green.
+- [x] Configure, build, unit/integration/CLI tests, and install pass locally.
+- [x] Every required GitHub Actions job for the final head commit is green.
 
 ## Deferred work
 
