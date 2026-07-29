@@ -6,9 +6,15 @@ services:
     environment:
       PX4_SIM_MODEL: ${SIMULATOR_MODEL}
       PX4_GZ_WORLD: ${SIMULATOR_WORLD}
+      HEADLESS: "1"
       DISPLAY: ${DISPLAY:-}
       QT_X11_NO_MITSHM: "1"
+      LIBGL_ALWAYS_SOFTWARE: "1"
+      XDG_RUNTIME_DIR: /tmp/drone-lab-xdg
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    cpus: ${SIMULATOR_CPUS}
+    mem_limit: ${SIMULATOR_MEMORY_LIMIT}
+    shm_size: ${SIMULATOR_SHM_SIZE}
     init: true
     stop_grace_period: 10s

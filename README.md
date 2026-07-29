@@ -37,6 +37,24 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+## Run Backyard Flyer in Gazebo
+
+On an Ubuntu x86_64 X11 or XWayland desktop with Docker Compose:
+
+```bash
+simulation/scenarios/backyard_flyer/launch.sh --gui
+```
+
+The launcher builds the PX4-enabled app, starts pinned PX4 SITL and Gazebo,
+opens and monitors the GUI, flies the 4 m square, lands, and cleans up. Do not
+use `sudo`. Defaults are capped at 4 CPU cores, 8 GiB RAM, and 4 build jobs.
+Hardware DRI rendering is selected automatically when available.
+
+Mission, GUI, simulator, and peak resource reports are written under
+`build/backyard-flyer-sitl/results/`. See the
+[scenario guide](simulation/scenarios/backyard_flyer/README.md) for headless
+execution, overrides, expected output, and troubleshooting.
+
 ## Current milestone
 
 The current implementation provides:

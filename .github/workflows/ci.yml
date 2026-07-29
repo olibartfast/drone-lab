@@ -83,8 +83,25 @@ jobs:
             -f simulation/scenarios/backyard_flyer/compose.yaml \
             -f simulation/scenarios/backyard_flyer/compose.headless.yaml \
             config --quiet
+          docker compose \
+            --env-file simulation/px4-gazebo/versions.env \
+            -f simulation/scenarios/backyard_flyer/compose.yaml \
+            config --format json > /tmp/backyard-flyer-compose.json
+          python3 simulation/scenarios/backyard_flyer/check_compose_contract.py \
+            /tmp/backyard-flyer-compose.json
+          docker compose \
+            --env-file simulation/px4-gazebo/versions.env \
+            -f simulation/scenarios/backyard_flyer/compose.yaml \
+            -f simulation/scenarios/backyard_flyer/compose.gui.yaml \
+            config --format json > /tmp/backyard-flyer-gui-compose.json
+          python3 simulation/scenarios/backyard_flyer/check_compose_contract.py \
+            /tmp/backyard-flyer-gui-compose.json --hardware
       - name: Validate smoke runner syntax
         run: |
           bash -n simulation/px4-gazebo/scripts/simulator_smoke.sh
           bash -n simulation/scenarios/backyard_flyer/bootstrap_mavsdk.sh
           bash -n simulation/scenarios/backyard_flyer/launch.sh
+          python3 -m py_compile \
+            simulation/scenarios/backyard_flyer/check_compose_contract.py \
+            simulation/scenarios/backyard_flyer/check_result.py \
+            simulation/scenarios/backyard_flyer/summarize_resources.py
