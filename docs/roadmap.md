@@ -357,6 +357,32 @@ Check:
 
 Invalid plans include machine-readable rejection reasons.
 
+## M4.7 — Gazebo planner visualization
+
+Run `planner_lab` against a pinned static fixture and render the occupancy map,
+inflated obstacles, start, goal, raw path, and pruned path in the Gazebo GUI.
+Gazebo-specific types and transport remain outside the planning library.
+
+**Acceptance criteria**
+
+One documented command opens the pinned Gazebo GUI scenario and displays
+markers that match the machine-readable planner result. Closing the GUI or a
+visualization transport failure terminates cleanly with an explicit reason. No
+vehicle movement is commanded.
+
+## M4.8 — Headless simulation recording
+
+Run the same planner visualization using offscreen rendering and record it from
+a fixed scene camera. Pin the camera pose, resolution, frame rate, renderer,
+encoder, and container image.
+
+**Acceptance criteria**
+
+One bounded cluster-friendly command produces a playable video beside the
+structured planner result without requiring an interactive display. Recording
+failures are machine-readable, and video remains a diagnostic artifact rather
+than the acceptance oracle.
+
 ---
 
 # Milestone Project 3 — 3D Urban Motion Planning

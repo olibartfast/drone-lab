@@ -7,13 +7,14 @@ inflated 2D and 3D occupancy maps, find and simplify collision-free 2D paths,
 represent equivalent 2D free-space connectivity as a graph, and validate timed
 3D waypoint paths with machine-readable rejection reasons.
 
-This plan implements roadmap items M4.1 through M4.6. It prepares the planning
-contracts needed by Milestone 5 without depending on a simulator, middleware,
-autopilot, or vehicle adapter.
+This plan implements roadmap items M4.1 through M4.8. The planning contracts
+remain independent of simulators, middleware, autopilots, and vehicle adapters.
+An optional Gazebo composition layer visualizes those contracts without moving
+a vehicle.
 
 Milestone 4 is complete only when the fixture-driven planning executable,
-library tests, CLI acceptance tests, install validation, and every required CI
-job are green.
+Gazebo GUI scenario, headless recording scenario, library tests, CLI acceptance
+tests, install validation, and every required CI job are green.
 
 ---
 
@@ -31,23 +32,26 @@ job are green.
 - metric 3D voxel maps with horizontal and vertical vehicle dimensions;
 - timed 3D waypoint-path validation;
 - deterministic fixtures and machine-readable planning reports;
-- platform-independent unit, integration, and executable-level tests.
+- platform-independent unit, integration, and executable-level tests;
+- a pinned Gazebo GUI scenario that visualizes planning artifacts;
+- offscreen rendering and video capture of the same scenario.
 
 ### Excluded
 
-- urban Gazebo worlds and simulator launch infrastructure;
+- urban worlds and vehicle-flight simulation;
 - live start or goal selection from vehicle telemetry;
 - 3D path search;
 - waypoint following or commands sent to PX4;
 - dynamic obstacle ingestion and replanning;
 - probabilistic occupancy updates, SLAM, mapping, and perception;
 - trajectory generation, smoothing, control, and state estimation;
-- ROS 2, MAVSDK, PX4, Gazebo, DJI, Android, or vendor types;
+- ROS 2, MAVSDK, PX4, Gazebo, DJI, Android, or vendor types in the planning
+  library;
 - multithreading, GPU acceleration, and performance-driven memory pools.
 
 The excluded work belongs to M5 or later milestones. M4 may define narrow value
 types that M5 will consume, but it must not add a command path or simulator
-dependency.
+dependency to `DroneLab::Planning`.
 
 ---
 
@@ -55,10 +59,12 @@ dependency.
 
 ```text
 apps/planner_lab
+simulation/scenarios/planner_lab
 ```
 
 The executable runs checked-in fixtures through the same public planning APIs
-used by tests and writes one deterministic JSON report per run.
+used by tests and writes one deterministic JSON report per run. The scenario
+consumes that result and publishes visualization markers to Gazebo.
 
 Suggested layout:
 
@@ -98,6 +104,17 @@ apps/planner_lab/
     reachable_detour.grid
     unreachable.grid
     validation.voxels
+
+simulation/scenarios/planner_lab/
+  README.md
+  compose.yaml
+  compose.gui.yaml
+  compose.headless.yaml
+  launch.sh
+  scenario.yaml
+  gui.config
+  check_result.py
+  tests/
 
 planning/tests/
   CMakeLists.txt
@@ -142,6 +159,28 @@ project must make `DroneLab::Planning` available through
 
 No global registry, planner singleton, or hidden process-wide configuration is
 permitted. Planner configuration and map data are supplied explicitly.
+
+## Gazebo visualization boundary
+
+Gazebo integration belongs in an optional adapter or scenario composition
+target. It consumes immutable planner domain values or the schema-versioned
+planner report and converts them into Gazebo markers at the boundary.
+
+The visualization must show:
+
+- source occupancy;
+- inflated blocked space;
+- start and goal;
+- raw path;
+- pruned path;
+- plan status and rejection reason.
+
+Marker IDs, namespaces, colours, scales, heights, and coordinate transforms are
+fixed by the scenario contract. Gazebo transport messages, rendering handles,
+GUI plugins, and encoder types must not appear in planning public headers.
+
+The scenario is visualization-only. It does not spawn a controllable aircraft,
+enter offboard mode, or send position, velocity, attitude, or motor commands.
 
 ## Coordinate conventions
 
@@ -762,6 +801,103 @@ the complete fixture suite is reproducible without a simulator or network.
 
 ---
 
+## M4.7 — Gazebo planner visualization
+
+Add an optional visualization composition layer that consumes the immutable
+planner result and converts only boundary marker descriptions into pinned
+Gazebo Harmonic transport values.
+
+The scenario must render:
+
+- source occupancy;
+- inflated blocked space;
+- start and goal;
+- raw path;
+- pruned path;
+- plan status and rejection reason.
+
+Provide one documented command:
+
+```bash
+simulation/scenarios/planner_lab/launch.sh --gui
+```
+
+The launcher builds and runs `planner_lab`, starts Gazebo with bounded server
+and GUI readiness, publishes stable markers, monitors the GUI, and cleans up on
+success, failure, interrupt, or operator close.
+
+Report planner status, marker counts, Gazebo and GUI readiness, renderer,
+display duration, cleanup status, and a typed failure reason.
+
+Required visualization failures include:
+
+```text
+gazebo_start_timeout
+gui_start_timeout
+gui_exited_early
+marker_publish_failed
+marker_contract_mismatch
+shutdown_timeout
+```
+
+**M4.7 acceptance:** the command runs on the supported Linux desktop, the GUI
+markers match the machine-readable plan, and shutdown is bounded and clean. No
+vehicle movement occurs.
+
+---
+
+## M4.8 — Headless simulation recording
+
+Run the identical world, camera, marker set, and display duration using
+offscreen rendering without mounting an interactive host display.
+
+Provide one bounded, cluster-friendly command:
+
+```bash
+simulation/scenarios/planner_lab/launch.sh --headless --record
+```
+
+Pin:
+
+```text
+camera pose and projection
+resolution and frame rate
+simulation-time duration
+renderer and software fallback
+encoder and container
+bitrate or quality setting
+```
+
+Prefer simulation-time, lockstep scene recording so cluster load does not
+change video duration or drop planner-state updates. Select supported EGL GPU
+rendering explicitly and provide a documented software fallback.
+
+Write the video beside `planner-result.json`, `scenario-result.json`, Gazebo
+logs, and resource measurements. Cleanup must stop the encoder, Gazebo, and the
+container on success, failure, interrupt, or timeout.
+
+Validate that the video exists, is non-empty, is decodable, has the configured
+container and dimensions, and has duration within one frame of the configured
+simulation-time duration.
+
+Required recording failures include:
+
+```text
+offscreen_renderer_unavailable
+encoder_start_failed
+encoder_exited_early
+video_missing
+video_metadata_mismatch
+video_decode_failed
+artifact_write_failed
+```
+
+**M4.8 acceptance:** one bounded invocation on the supported cluster runner
+produces a validated playable video and structured results. Planner output and
+video metadata are repeatable; encoded bytes need not be identical.
+
+---
+
 # Test and validation matrix
 
 ## Local required validation
@@ -787,6 +923,8 @@ build/apps/planner_lab/planner_lab \
   --fixture apps/planner_lab/fixtures/reachable_detour.grid \
   --planner graph \
   --output build/planner-graph.json
+simulation/scenarios/planner_lab/launch.sh --gui
+simulation/scenarios/planner_lab/launch.sh --headless --record
 ```
 
 The executable paths may follow the generator's layout, but CTest must invoke
@@ -804,11 +942,15 @@ The existing required matrix remains the completion gate:
 - existing PX4/Gazebo contract job.
 
 Planning acceptance tests run inside the ordinary cross-platform C++ matrix and
-must not download simulator images or use the network.
+must not download simulator images or use the network. The ordinary simulator
+contract job validates Compose expansion, pinned capture configuration, helper
+tests, script syntax, and result/video checker fixtures without launching the
+multi-gigabyte image.
 
-Add a separate CI job only if the plan later requires a materially different
-toolchain or contract. Do not duplicate the matrix merely to run the same
-CTest targets.
+A dedicated supported Linux simulator runner must execute the full M4.7 GUI
+smoke and M4.8 headless recording acceptance. The limitation and artifact
+retention policy must be explicit if that runner is not available in ordinary
+pull-request CI.
 
 ---
 
@@ -829,6 +971,17 @@ CTest targets.
 - every non-zero exit condition;
 - known limitations, including the absence of 3D search and execution.
 
+`simulation/scenarios/planner_lab/README.md` must document:
+
+- pinned Gazebo and container prerequisites;
+- GUI and headless-record commands;
+- visualization legend and coordinate transforms;
+- renderer selection and software fallback;
+- pinned camera and encoding settings;
+- result, log, resource, and video artifact paths;
+- readiness, shutdown, and recording failure behavior;
+- RunPod GPU, volume, and artifact-collection assumptions.
+
 Update the root `README.md` in the implementation PR to name Planning
 Foundations as the active milestone and link the runnable planner lab. Preserve
 `docs/roadmap.md` as the scope source of truth; change it only to clarify a
@@ -848,7 +1001,9 @@ sequence is:
 5. free-space graph and grid/graph parity;
 6. 3D voxel occupancy and vehicle-envelope inflation;
 7. timed 3D path validation and end-to-end acceptance reports;
-8. documentation, install-consumer validation, and final CI audit.
+8. Gazebo marker adapter and GUI scenario;
+9. offscreen rendering, video capture, and artifact validation;
+10. documentation, install-consumer validation, and final CI audit.
 
 Each slice must include production code, narrow tests, relevant documentation,
 and machine-readable behavior. Keep pull requests draft until their scoped
@@ -868,6 +1023,13 @@ Milestone 4 is complete only when all statements below are verified:
 - [ ] 2D inflation is conservative and deterministic.
 - [ ] Grid A* handles reachable, unreachable, and start-equals-goal fixtures.
 - [ ] Grid A* tie-breaking and neighbor order are explicit and deterministic.
+- [ ] The pinned Gazebo GUI displays markers matching the planner JSON.
+- [ ] Gazebo-specific types remain outside `DroneLab::Planning`.
+- [ ] GUI startup, early exit, and shutdown failures are tested.
+- [ ] The headless command produces a validated playable video.
+- [ ] Capture configuration and renderer selection are pinned and reported.
+- [ ] Video never replaces or weakens planner acceptance assertions.
+- [ ] The scenario README documents GUI, RunPod recording, and cleanup.
 - [ ] Diagonal corner cutting is rejected.
 - [ ] Pruned paths preserve endpoints and pass collision revalidation.
 - [ ] Grid and graph planners use one interface and have fixture parity.
@@ -893,6 +1055,6 @@ The following remain explicit M5 work:
 - 3D search and cost selection;
 - validated waypoint execution through PX4;
 - map-update invalidation and replanning;
-- simulator end-to-end route acceptance.
+- simulator end-to-end vehicle route acceptance.
 
 No M4 completion claim may rely on any deferred feature.
