@@ -5,7 +5,51 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd -- "${SCRIPT_DIR}/../../.." && pwd)"
 SIM_DIR="${REPO_DIR}/simulation/px4-gazebo"
 BUILD_DIR="${REPO_DIR}/build/backyard-flyer-sitl"
-OUTPUT_DIR="${BUILD_DIR}/results"
+SCENARIO="square"
+COMPOSE=(docker compose --env-file "${SIM_DIR}/versions.env" -f "${SCRIPT_DIR}/compose.yaml")
+GUI_RENDERER="none"
+DRI_PRIME_SELECTOR="${DRONE_LAB_DRI_PRIME:-}"
+
+usage() {
+  echo "usage: ${0} --gui|--headless [--scenario arm-only|takeoff-only|single-leg|square]" >&2
+}
+
+GUI=""
+while (( $# > 0 )); do
+  case "$1" in
+    --gui)
+      [[ -z "${GUI}" ]] || { usage; exit 2; }
+      GUI=true
+      ;;
+    --headless)
+      [[ -z "${GUI}" ]] || { usage; exit 2; }
+      GUI=false
+      ;;
+    --scenario)
+      (( $# >= 2 )) || { usage; exit 2; }
+      SCENARIO="$2"
+      shift
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+  shift
+done
+if [[ -z "${GUI}" ]]; then
+  usage
+  exit 2
+fi
+case "${SCENARIO}" in
+  arm-only|takeoff-only|single-leg|square) ;;
+  *) usage; exit 2 ;;
+esac
+if [[ "${GUI}" == false ]]; then
+  COMPOSE+=(-f "${SCRIPT_DIR}/compose.headless.yaml")
+fi
+
+OUTPUT_DIR="${BUILD_DIR}/results/${SCENARIO}"
 MISSION_LOG="${OUTPUT_DIR}/mission.jsonl"
 RUNTIME_LOG="${OUTPUT_DIR}/runtime.log"
 SIMULATOR_LOG="${OUTPUT_DIR}/simulator.log"
@@ -13,23 +57,6 @@ GUI_LOG="${OUTPUT_DIR}/gazebo-gui.log"
 RESOURCE_LOG="${OUTPUT_DIR}/resources.jsonl"
 RESOURCE_REPORT="${OUTPUT_DIR}/resources-summary.json"
 REPORT="${OUTPUT_DIR}/result.json"
-COMPOSE=(docker compose --env-file "${SIM_DIR}/versions.env" -f "${SCRIPT_DIR}/compose.yaml")
-GUI_RENDERER="none"
-DRI_PRIME_SELECTOR="${DRONE_LAB_DRI_PRIME:-}"
-
-usage() {
-  echo "usage: ${0} --gui|--headless" >&2
-}
-
-if [[ "${1:-}" == "--gui" && $# -eq 1 ]]; then
-  GUI=true
-elif [[ "${1:-}" == "--headless" && $# -eq 1 ]]; then
-  GUI=false
-  COMPOSE+=(-f "${SCRIPT_DIR}/compose.headless.yaml")
-else
-  usage
-  exit 2
-fi
 
 if [[ "${GUI}" == true ]]; then
   GUI_RENDERER="software"
@@ -63,7 +90,9 @@ source "${SIM_DIR}/versions.env"
 set +a
 
 BUILD_PARALLEL_JOBS="${DRONE_LAB_BUILD_JOBS:-${BUILD_PARALLEL_JOBS}}"
-SIMULATOR_CPUS="${DRONE_LAB_SIMULATOR_CPUS:-${SIMULATOR_CPUS}}"
+# The longer flight scenarios need headroom above their observed ~3.6-core peak
+# to keep PX4 heartbeats deterministic under host scheduling jitter.
+SIMULATOR_CPUS="${DRONE_LAB_SIMULATOR_CPUS:-6.0}"
 SIMULATOR_MEMORY_LIMIT="${DRONE_LAB_SIMULATOR_MEMORY_LIMIT:-${SIMULATOR_MEMORY_LIMIT}}"
 export BUILD_PARALLEL_JOBS SIMULATOR_CPUS SIMULATOR_MEMORY_LIMIT
 export DRI_PRIME_SELECTOR
@@ -219,7 +248,8 @@ set +e
 LD_LIBRARY_PATH="${MAVSDK_PREFIX}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}" \
   timeout --signal=TERM --kill-after=10s 210s \
   "${BUILD_DIR}/build/apps/backyard_flyer/backyard_flyer" \
-    --backend px4 --connection udpin://0.0.0.0:14540 --connection-timeout 60 \
+    --backend px4 --scenario "${SCENARIO}" \
+    --connection udpin://0.0.0.0:14540 --connection-timeout 60 \
   | tee "${RUNTIME_LOG}"
 mission_status=${PIPESTATUS[0]}
 set -e
@@ -257,4 +287,4 @@ PY
   exit 1
 fi
 
-python3 "${SCRIPT_DIR}/check_result.py" "${MISSION_LOG}" | tee "${REPORT}"
+python3 "${SCRIPT_DIR}/check_result.py" "${MISSION_LOG}" "${SCENARIO}" | tee "${REPORT}"

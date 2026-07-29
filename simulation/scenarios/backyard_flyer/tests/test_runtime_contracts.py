@@ -85,6 +85,15 @@ class LauncherContractTest(unittest.TestCase):
         self.assertIn('driver_name}" == "amdgpu"', script)
         self.assertIn('DRI_PRIME_SELECTOR="pci-${pci_selector}"', script)
 
+    def test_launcher_selects_and_checks_each_progressive_scenario(self):
+        script = (SCENARIO_DIR / "launch.sh").read_text(encoding="utf-8")
+        self.assertIn("--scenario", script)
+        self.assertIn('results/${SCENARIO}', script)
+        self.assertIn('"${MISSION_LOG}" "${SCENARIO}"', script)
+        self.assertIn('SIMULATOR_CPUS="${DRONE_LAB_SIMULATOR_CPUS:-6.0}"', script)
+        suite = (SCENARIO_DIR / "run_all.sh").read_text(encoding="utf-8")
+        self.assertIn("arm-only takeoff-only single-leg square", suite)
+
 
 class ResourceSummaryTest(unittest.TestCase):
     def test_reports_peaks_and_limit(self):
