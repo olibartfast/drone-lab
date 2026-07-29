@@ -61,6 +61,7 @@ jobs:
         run: |
           python3 -m unittest discover -s simulation/px4-gazebo/tests -v
           python3 -m unittest discover -s simulation/scenarios/backyard_flyer/tests -v
+          python3 -m unittest discover -s simulation/scenarios/planner_lab/tests -v
       - name: Validate pinned environment
         run: python3 simulation/px4-gazebo/scripts/validate_environment.py
       - name: Verify pinned image manifest
@@ -96,13 +97,27 @@ jobs:
             config --format json > /tmp/backyard-flyer-gui-compose.json
           python3 simulation/scenarios/backyard_flyer/check_compose_contract.py \
             /tmp/backyard-flyer-gui-compose.json --hardware
+          mkdir -p /tmp/planner-lab-artifacts
+          PLANNER_LAB_OUTPUT_DIR=/tmp/planner-lab-artifacts \
+            PLANNER_LAB_MODE=headless docker compose \
+            --env-file simulation/px4-gazebo/versions.env \
+            -f simulation/scenarios/planner_lab/compose.yaml \
+            -f simulation/scenarios/planner_lab/compose.headless.yaml \
+            config --format json > /tmp/planner-lab-compose.json
+          python3 simulation/scenarios/planner_lab/check_compose_contract.py \
+            /tmp/planner-lab-compose.json --headless
       - name: Validate smoke runner syntax
         run: |
           bash -n simulation/px4-gazebo/scripts/simulator_smoke.sh
           bash -n simulation/scenarios/backyard_flyer/bootstrap_mavsdk.sh
           bash -n simulation/scenarios/backyard_flyer/launch.sh
           bash -n simulation/scenarios/backyard_flyer/run_all.sh
+          bash -n simulation/scenarios/planner_lab/launch.sh
+          bash -n simulation/scenarios/planner_lab/runtime.sh
           python3 -m py_compile \
             simulation/scenarios/backyard_flyer/check_compose_contract.py \
             simulation/scenarios/backyard_flyer/check_result.py \
-            simulation/scenarios/backyard_flyer/summarize_resources.py
+            simulation/scenarios/backyard_flyer/summarize_resources.py \
+            simulation/scenarios/planner_lab/check_compose_contract.py \
+            simulation/scenarios/planner_lab/check_result.py \
+            simulation/scenarios/planner_lab/generate_world.py

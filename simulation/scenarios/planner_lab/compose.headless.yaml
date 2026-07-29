@@ -1,0 +1,6 @@
+services:
+  planner-gazebo:
+    environment:
+      DISPLAY: ""
+      QT_QPA_PLATFORM: offscreen
+      GZ_SIM_RENDER_ENGINE_SERVER_API_BACKEND: OpenGL

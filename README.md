@@ -37,6 +37,24 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+## Run Planning Foundations
+
+Milestone 4 provides a deterministic platform-independent 2D/3D planning
+library and fixture-driven lab:
+
+```bash
+build/apps/planner_lab/planner_lab \
+  --fixture apps/planner_lab/fixtures/reachable_detour.grid \
+  --planner grid \
+  --output build/planner-result.json
+```
+
+The equivalent graph planner is selected with `--planner graph`. See the
+[Planner Lab guide](apps/planner_lab/README.md) for coordinates, fixture and
+report contracts, failures, and limitations. The optional
+[Gazebo visualization guide](simulation/scenarios/planner_lab/README.md)
+documents GUI and headless-video commands; neither path commands a vehicle.
+
 ## Run Backyard Flyer in Gazebo
 
 On an Ubuntu x86_64 X11 or XWayland desktop with Docker Compose:
@@ -65,7 +83,7 @@ execution, overrides, expected output, and troubleshooting.
 
 ## Current milestone
 
-The current implementation provides:
+The active milestone is M4 Planning Foundations. The implementation provides:
 
 - a C++20 core library;
 - vehicle, camera and telemetry abstractions;
@@ -76,6 +94,11 @@ The current implementation provides:
 - deterministic arm-only, takeoff-only, single-leg, and square scenarios;
 - failure injection, bounded per-state timeouts, and structured mission metrics;
 - an opt-in MAVSDK adapter and pinned PX4/Gazebo acceptance scenario;
+- an installable, platform-independent `DroneLab::Planning` target;
+- deterministic 2D inflation, grid/graph A*, collision-aware pruning, 3D voxel
+  inflation, and typed timed-path validation;
+- fixture-driven planning reports plus optional Gazebo visualization and
+  headless recording contracts;
 - unit tests and GitHub Actions CI;
 - placeholders for ROS 2 and DJI MSDK adapters.
 

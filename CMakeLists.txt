@@ -17,7 +17,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include(cmake/CompilerWarnings.cmake)
 include(cmake/Sanitizers.cmake)
 
+if(DRONE_LAB_BUILD_TESTS)
+  include(CTest)
+endif()
+
 add_subdirectory(core)
+add_subdirectory(planning)
 if(DRONE_LAB_ENABLE_PX4_SIM)
   if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "DRONE_LAB_ENABLE_PX4_SIM currently supports Linux only")
@@ -26,14 +31,15 @@ if(DRONE_LAB_ENABLE_PX4_SIM)
 endif()
 add_subdirectory(apps/fake_drone_loop)
 add_subdirectory(apps/backyard_flyer)
+add_subdirectory(apps/planner_lab)
 
 if(DRONE_LAB_BUILD_EXAMPLES)
   add_subdirectory(apps/target-tracking)
 endif()
 
 if(DRONE_LAB_BUILD_TESTS)
-  include(CTest)
   add_subdirectory(core/tests)
+  add_subdirectory(planning/tests)
 endif()
 
 write_basic_package_version_file(

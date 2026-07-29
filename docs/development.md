@@ -19,4 +19,6 @@ ctest --test-dir build --output-on-failure
 cmake --install build --prefix build/install
 ```
 
-After installation, downstream CMake projects can use `find_package(DroneLab CONFIG REQUIRED)` and link `DroneLab::Core`.
+After installation, downstream CMake projects can use
+`find_package(DroneLab CONFIG REQUIRED)` and link `DroneLab::Core` or
+`DroneLab::Planning`.

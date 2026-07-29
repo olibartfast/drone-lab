@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22)
+project(DroneLabPlanningConsumer LANGUAGES CXX)
+find_package(DroneLab CONFIG REQUIRED)
+add_executable(planning_consumer main.cpp)
+target_link_libraries(planning_consumer PRIVATE DroneLab::Planning)
+target_compile_features(planning_consumer PRIVATE cxx_std_20)
