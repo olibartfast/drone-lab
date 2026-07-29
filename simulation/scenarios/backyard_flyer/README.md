@@ -28,8 +28,10 @@ simulation/scenarios/backyard_flyer/launch.sh --gui
 
 The launcher keeps X11 permission active for the complete run, starts PX4 and
 the server first, then starts and monitors the GUI client explicitly. It uses
-`/dev/dri` hardware rendering when available and otherwise uses software
-rendering. Do not run it with `sudo`.
+a Mesa-compatible Intel, AMD, or Nouveau `/dev/dri` render device when
+available and otherwise uses software rendering. Proprietary NVIDIA devices
+are not selected through Mesa because their EGL libraries must match the host
+driver. Do not run it with `sudo`.
 
 For a non-visual acceptance run:
 

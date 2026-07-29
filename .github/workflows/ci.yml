@@ -89,7 +89,7 @@ jobs:
             config --format json > /tmp/backyard-flyer-compose.json
           python3 simulation/scenarios/backyard_flyer/check_compose_contract.py \
             /tmp/backyard-flyer-compose.json
-          docker compose \
+          DRI_PRIME_SELECTOR=pci-0000_00_02_0 docker compose \
             --env-file simulation/px4-gazebo/versions.env \
             -f simulation/scenarios/backyard_flyer/compose.yaml \
             -f simulation/scenarios/backyard_flyer/compose.gui.yaml \

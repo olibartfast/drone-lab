@@ -27,6 +27,8 @@ def validate(config: dict, expect_hardware: bool = False) -> list[str]:
     device_paths = {device.get("target", device.get("path_in_container")) for device in service.get("devices", [])}
     if expect_hardware and "/dev/dri" not in device_paths:
         errors.append("GUI hardware rendering requires /dev/dri")
+    if expect_hardware and environment.get("DRI_PRIME") == "0":
+        errors.append("DRI_PRIME=0 is invalid; use a PCI selector or leave it unset")
     return errors
 
 
