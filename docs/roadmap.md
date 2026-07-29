@@ -387,15 +387,30 @@ Send validated waypoints through the PX4 adapter.
 
 Invalidate the current route after a simulated obstacle or map update.
 
+## M5.7 — Headless simulation recording
+
+Record the urban scenario from a fixed scene camera during headless execution.
+The cluster runner must pin the camera pose, resolution, frame rate, renderer,
+encoder, and container image.
+
+**Done when:** one bounded RunPod-style invocation produces a playable video
+beside the structured scenario results without requiring an interactive
+display. Recording failures are machine-readable, and video remains a
+diagnostic artifact rather than the acceptance oracle.
+
 **Project acceptance test**
 
-The simulator plans and executes a collision-free route through the urban world, then safely stops or replans when the route becomes invalid.
+The simulator plans and executes a collision-free route through the urban
+world, then safely stops or replans when the route becomes invalid. A headless
+run also produces the pinned simulation video and structured acceptance
+results.
 
 **Outputs**
 
 ```text
 apps/urban_planner
 simulation/scenarios/urban_3d
+build/urban_3d/results/simulation.mp4
 ```
 
 ---
