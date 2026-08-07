@@ -81,6 +81,20 @@ See the
 [scenario guide](simulation/scenarios/backyard_flyer/README.md) for headless
 execution, overrides, expected output, and troubleshooting.
 
+## Real-aircraft integration
+
+The project remains simulator-first, but the path to a physical custom PX4 or
+ArduPilot aircraft is documented explicitly. The hardware track covers flight
+controller bring-up, MAVLink transport, read-only telemetry, bench validation,
+failsafes and RTL, bounded companion-computer commands, onboard C++ perception,
+advisory vision, and finally bounded vision-assisted control.
+
+See [`docs/real-aircraft-integration.md`](docs/real-aircraft-integration.md).
+The guide also maps reusable material from the previously purchased *Make a
+Drone* and *Make an Open Source Drone: More Fun* courses onto `drone-lab`
+abstractions without making legacy course hardware or software part of the
+core architecture.
+
 ## Current milestone
 
 The active milestone is M4 Planning Foundations. The implementation provides:
@@ -107,4 +121,6 @@ and can use the opt-in PX4 SITL adapter through the pinned Gazebo scenario.
 See [`apps/backyard_flyer/README.md`](apps/backyard_flyer/README.md) for the
 runnable workflows and current limitations.
 
-See [`docs/roadmap.md`](docs/roadmap.md) for the next atomic milestones.
+See [`docs/roadmap.md`](docs/roadmap.md) for the next atomic milestones and
+[`docs/real-aircraft-integration.md`](docs/real-aircraft-integration.md) for the
+sim-to-real hardware path.
